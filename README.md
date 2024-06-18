@@ -1,5 +1,5 @@
 # For Capstone Design
-### A star From the container terminal to the container in the bay A* Algorithm for Optimal Refinancing
+### A* Algorithm for Optimal Intra-bay Container Pre-marshalling Plan
 위 코드를 수정해서 A*알고리즘으로 각 stack의 인덱스가 내림차순으로 정렬되는 최적화 문제를 해결.
 
 ## **Consideration**
