@@ -32,9 +32,6 @@ def find_rightmost_values(A, exclude_position=None):
     return values_positions
 
 def find_valid_empty_slot(A, empty_slots, avoid_row):
-    W = len(A[0])
-    H = len(A)
-
     for _ in range(len(empty_slots)):
         empty_row, empty_col = random.choice(empty_slots)
         # 같은 행을 피하고, 왼쪽 값이 0인 경우 피하기
@@ -50,7 +47,7 @@ def move_and_sort(A, empty_slots):
     iterations = 0
     move_count = 0  # 이동 횟수 카운트 변수 추가
 
-    while iterations < 10:  # 최대 10회 반복
+    while iterations < 5:  # 최대 5회 반복
         rightmost_positions = find_rightmost_values(A, last_moved)
         if not rightmost_positions:
             print("No valid rightmost values found.")
@@ -92,13 +89,6 @@ def move_and_sort(A, empty_slots):
             break  # 한 번 이동 후, 다시 가장 오른쪽 값들 갱신하여 진행
 
         iterations += 1
-
-    # 정렬 유지
-    for row in range(H):
-        for col in range(W-1):
-            for next_col in range(col+1, W):
-                if list(A[row][col].values())[0] < list(A[row][next_col].values())[0]:
-                    A[row][col], A[row][next_col] = A[row][next_col], A[row][col]
 
     return A, empty_slots, last_moved, move_count  # 이동 횟수를 반환
 

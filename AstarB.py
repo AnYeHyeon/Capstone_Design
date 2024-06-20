@@ -1,5 +1,6 @@
 import random
 
+# 컨테이너 배치를 Matrix형태로 바꾸기
 def adjust_matrix_and_add_identifiers(A, W, H):
     original_H = len(A)
     original_W = len(A[0]) if original_H > 0 else 0
@@ -21,83 +22,91 @@ def adjust_matrix_and_add_identifiers(A, W, H):
     
     return adjusted_A
 
-def find_rightmost_values(A, exclude_position=None):
-    values_positions = []
-    for row in range(len(A)):
-        for col in range(len(A[0])-1, -1, -1):
-            if list(A[row][col].values())[0] != 0:
-                if exclude_position is None or (row, col) != exclude_position:
-                    values_positions.append((row, col))
-                break  # 행의 가장 오른쪽에 있는 값만 검사
-    return values_positions
 
+# 다음 옮길 컨테이너 고르기
+def find_moving_container(A):
+    moving_container = []
+    for row in range(len(A)):
+        for col in reversed(range(len(A[0]))):
+            if list(A[row][col].values())[0] != 0:
+                moving_container.append((row, col))
+                break
+    return moving_container
+
+# 컨테이너를 둘 빈 자리 고르기
 def find_valid_empty_slot(A, empty_slots, avoid_row):
     for _ in range(len(empty_slots)):
         empty_row, empty_col = random.choice(empty_slots)
-        # 같은 행을 피하고, 왼쪽 값이 0인 경우 피하기
-        if empty_row == avoid_row or (empty_col > 0 and list(A[empty_row][empty_col - 1].values())[0] == 0):
-            continue  # 피해야 할 조건에 해당하는 경우 패스
-        return (empty_row, empty_col)
-    
-    return None  # 유효한 빈 자리를 찾지 못한 경우
-
-def move_and_sort(A, empty_slots):
-    last_moved = None
-    H, W = len(A), len(A[0])
-    iterations = 0
-    move_count = 0  # 이동 횟수 카운트 변수 추가
-
-    while iterations < 5:  # 최대 5회 반복
-        rightmost_positions = find_rightmost_values(A, last_moved)
-        if not rightmost_positions:
-            print("No valid rightmost values found.")
-            break
-
-        # 가장 큰 값을 우선 선택하도록 정렬
-        rightmost_positions.sort(key=lambda pos: list(A[pos[0]][pos[1]].values())[0], reverse=True)
         
-        for chosen_position in rightmost_positions:
-            chosen_row, chosen_col = chosen_position
-            chosen_value = list(A[chosen_row][chosen_col].values())[0]
+        # 같은 행이면 불가능
+        if empty_row == avoid_row:
+            continue
+        # 0을 제외한 가장 오른쪽에 있는 컨테이너 선택
+        if empty_col == len(A[0]) - 1 or (empty_col < len(A[0]) - 1 and list(A[empty_row][empty_col + 1].values())[0] == 0):
+            return (empty_row, empty_col)
+    # print(empty_row, empty_col)
+    return None  # No valid empty slot found
 
-            # 이전에 이동한 위치는 제외
-            if last_moved and (chosen_row, chosen_col) == last_moved:
-                continue
+def is_sorted_descending(row):
+    values = [list(cell.values())[0] for cell in row]
+    return all(values[i] >= values[i + 1] for i in range(len(values) - 1))
 
-            empty_slot = find_valid_empty_slot(A, empty_slots, chosen_row)
-            if not empty_slot:
-                print("No valid empty slot found.")
-                continue  # 다음 후보로 넘어감
+def move_and_sort(A, W, H):
+    A = adjust_matrix_and_add_identifiers(A, W, H)
 
-            empty_row, empty_col = empty_slot
+    print("Initial state:")
+    for row in A:
+        print(row)
+    print()
 
-            # 교환
-            A[chosen_row][chosen_col], A[empty_row][empty_col] = A[empty_row][empty_col], A[chosen_row][chosen_col]
-            
-            # 빈 자리 업데이트
-            empty_slots.remove((empty_row, empty_col))
-            empty_slots.append((chosen_row, chosen_col))
+    move_count = 0
+    all_sorted = False
 
-            move_count += 1  # 이동할 때마다 이동 횟수 증가
+    # 모든 스택이 적합한지 확인
+    if all(is_sorted_descending(row) for row in A):
+        all_sorted = True
+        print("All rows are sorted in descending order.")
+    else:
+        print("Not sorted yet.")
+        
+        while all_sorted == False:
+            moving_container = find_moving_container(A)
+            # print(moving_container) # 옮길 컨데이터 고르기
+            if not moving_container:
+                print("No valid moving container is found.")
+                break
 
-            print(f"Moving {A[empty_row][empty_col]} from {chosen_position} to {empty_slot}: (Move {move_count})")
-            for row in A:
-                print(row)
-            print()
+            moving_container.sort(key=lambda pos: list(A[pos[0]][pos[1]].values())[0], reverse=True) # 옮길 컨테이너 후보 중 인덱스값 큰거 고르기
+            # print(moving_container)
 
-            last_moved = (empty_row, empty_col)
-            break  # 한 번 이동 후, 다시 가장 오른쪽 값들 갱신하여 진행
 
-        iterations += 1
+            for moving_container_position in moving_container:
+                moving_con_row, moving_con_col = moving_container_position
+                moving_container = list(A[moving_con_row][moving_con_col].items())
+                print(moving_container)
 
-    # 정렬 유지
-    for row in range(H):
-        for col in range(W-1):
-            for next_col in range(col+1, W):
-                if list(A[row][col].values())[0] < list(A[row][next_col].values())[0]:
-                    A[row][col], A[row][next_col] = A[row][next_col], A[row][col]
 
-    return A, empty_slots, last_moved, move_count  # 이동 횟수를 반환
+        #         empty_slot = find_valid_empty_slot(A, empty_slots, moving_con_row)
+        #         if not empty_slot:
+        #             print("No valid empty slot found.")
+        #             continue
+
+        #         empty_row, empty_col = empty_slot
+
+        #         A[moving_con_row][moving_con_col], A[empty_row][empty_col] = A[empty_row][empty_col], A[moving_con_row][moving_con_col]
+
+        #         empty_slots.remove((empty_row, empty_col))
+        #         empty_slots.append((moving_con_row, moving_con_col))
+
+                # move_count += 1
+
+        #         # print(f"(Move {move_count}) Moving {A[empty_row][empty_col]} from {moving_container_position} to {empty_slot}")
+        #         for row in A:
+        #             print(row)
+        #         print()
+
+    return A, move_count
+
 
 def main():
     A = [
@@ -110,20 +119,13 @@ def main():
     H = 3
 
     try:
-        A = adjust_matrix_and_add_identifiers(A, W, H)
-        empty_slots = [(i, j) for i in range(H) for j in range(W) if list(A[i][j].values())[0] == 0]
+        
+        A, move_count = move_and_sort(A, W, H)
 
-        print("Initial state:")
-        for row in A:
-            print(row)
-        print()
-
-        A, empty_slots, last_moved, move_count = move_and_sort(A, empty_slots)
-
-        print("Final state:")
-        for row in A:
-            print(row)
-        print(f"Total number of moves: {move_count}")  # 이동 횟수 출력
+    #     print("Final state:")
+    #     for row in A:
+    #         print(row)
+    #     print(f"Total number of moves: {move_count}")
 
     except ValueError as e:
         print(e)
