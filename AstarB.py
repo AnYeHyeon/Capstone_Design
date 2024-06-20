@@ -37,7 +37,7 @@ def find_moving_container(A, last_moved_container):
                     containers.append((row, col))
                     weights.append(value)
                 break  # 가장 오른쪽에 있는 첫 번째 0이 아닌 컨테이너를 찾으면 탐색 중지
-    print(containers)
+    # print(containers)
         
         # 가중치 기반으로 선택
     if containers:
@@ -70,10 +70,9 @@ def is_sorted_descending(row):
 
 def move_and_sort(A, W, H):
     A = adjust_matrix_and_add_identifiers(A, W, H)
-    print("Initial state:")
-    for row in A:
-        print(row)
-    print()
+    process_log = []  # 각 상태를 기록할 리스트
+    
+    process_log.append((A.copy(), 0, "Initial state"))  # 초기 상태 기록
 
     move_count = 0
     all_sorted = False
@@ -85,21 +84,20 @@ def move_and_sort(A, W, H):
         print("All containers are already suitable.")
     else:        
         while not all_sorted:
-            moving_con = find_moving_container(A, last_moved_container)
-            print(moving_con)
-            moving_con_row, moving_con_col = moving_con
+            
             # 1 옮길 컨테이너 고르기
-            if not moving_con:
-                print("No valid moving container is found.")
-                break
-
+            moving_con = find_moving_container(A, last_moved_container)
+            # print(moving_con)
+            moving_con_row, moving_con_col = moving_con
             current_container = list(A[moving_con_row][moving_con_col].items())
-            # print("moving_con_row: " + str(moving_con_row))
+            if not moving_con:
+                # print("No valid moving container is found.")
+                break
 
             # 2 빈자리 선택
             empty_slot = find_valid_empty_slot(A, moving_con_row)
             if not empty_slot:
-                print("No valid empty slot found.")
+                # print("No valid empty slot found.")
                 continue
 
             # 3 빈 자리를 새로 선택했으니 컨테이너를 이동
@@ -110,24 +108,40 @@ def move_and_sort(A, W, H):
             last_moved_container = (empty_row, empty_col)
 
             move_count += 1
-            print(f"{current_container} to {empty_slot}. Move count: {move_count}")
+            log_message = f"{current_container} to {empty_slot}. Move count: {move_count}"
+            process_log.append((A.copy(), move_count, log_message))  # 상태와 이동 횟수, 로그 메시지 기록
 
             # 매트릭스 상태 확인
-            for row in A:
-                print(row)
-            print()
+            # for row in A:
+            #     print(row)
+            # print()
 
             # 정렬 상태 확인
             if all(is_sorted_descending(row) for row in A):
                 all_sorted = True
                 print("########## Final State ##########")
-                for row in A:
-                    print(row)
-                print("All containers are already suitable.")
+                # for row in A:
+                #     print(row)
+                # print(f"Move count: {move_count}")
+                # print("All containers are suitable.")
                 break
  
-    return A, move_count
+    return A, move_count, process_log
 
+def run_experiments(num_trials, A, W, H):
+    results = []
+
+    for trial in range(num_trials):
+        print(f"Trial {trial + 1}:")
+        result_matrix, move_count, process_log = move_and_sort(A, W, H)
+        results.append((result_matrix, move_count, process_log))
+        print(f"Move count: {move_count}\n")
+
+    # Move count가 가장 작은 결과 찾기
+    min_moves = min(results, key=lambda x: x[1])
+    best_matrix, best_move_count, best_process_log = min_moves
+
+    return best_matrix, best_move_count, best_process_log
 
 def main():
     A = [
@@ -138,15 +152,22 @@ def main():
 
     W = 3
     H = 3
+    num_trials = 10
 
     try:
-        
-        A, move_count = move_and_sort(A, W, H)
+        best_matrix, best_move_count, best_process_log = run_experiments(num_trials, A, W, H)
 
-    #     print("Final state:")
-    #     for row in A:
-    #         print(row)
-    #     print(f"Total number of moves: {move_count}")
+        print("Best result with the least move count:")
+        for row in best_matrix:
+            print(row)
+        print(f"Minimum Move count: {best_move_count}")
+
+        print("\nProcess log of the best result:")
+        for step, (matrix_state, count, log_message) in enumerate(best_process_log):
+            print(f"Step {step}: {log_message}")
+            for row in matrix_state:
+                print(row)
+            print()
 
     except ValueError as e:
         print(e)
