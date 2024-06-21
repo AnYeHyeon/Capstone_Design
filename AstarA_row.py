@@ -1,5 +1,17 @@
 import random
 
+from flask import Flask, request, render_template, jsonify
+
+app = Flask(__name__)
+
+# 입력 매트릭스의 각 행의 길이를 맞추는 함수
+def normalize_matrix(A, W):
+    new_A = []
+    for row in A:
+        new_row = row + [0] * (W - len(row))  # 부족한 부분을 0으로 채움
+        new_A.append(new_row)
+    return new_A    
+
 # 컨테이너 배치를 Matrix형태로 바꾸기
 def adjust_matrix_and_add_identifiers(A, W, H):
     original_H = len(A)
@@ -69,6 +81,7 @@ def is_sorted_descending(row):
     return all(values[i] >= values[i + 1] for i in range(len(values) - 1))
 
 def move_and_sort(A, W, H):
+    A = normalize_matrix(A, W)  # 매트릭스의 각 행의 길이를 맞춤
     A = adjust_matrix_and_add_identifiers(A, W, H)
     process_log = []  # 각 상태를 기록할 리스트
     
@@ -143,34 +156,57 @@ def run_experiments(num_trials, A, W, H):
 
     return best_matrix, best_move_count, best_process_log
 
-def main():
-    A = [
-        [2, 1],
-        [2, 3],
-        [2, 3]
-    ]
+# def main():
+#     A = [
+#         [2, 1, 4],
+#         [2, 3],
+#         [2, 4],
+#         [2, 3]
+#     ]
 
-    W = 3
-    H = 3
-    num_trials = 10
+#     W = 4
+#     H = 4
+#     num_trials = 20
 
-    try:
-        best_matrix, best_move_count, best_process_log = run_experiments(num_trials, A, W, H)
+#     try:
+#         best_matrix, best_move_count, best_process_log = run_experiments(num_trials, A, W, H)
 
-        print("Best result with the least move count:")
-        for row in best_matrix:
-            print(row)
-        print(f"Minimum Move count: {best_move_count}")
+#         print("Best result with the least move count:")
+#         for row in best_matrix:
+#             print(row)
+#         print(f"Minimum Move count: {best_move_count}")
 
-        print("\nProcess log of the best result:")
-        for step, (matrix_state, count, log_message) in enumerate(best_process_log):
-            print(f"Step {step}: {log_message}")
-            for row in matrix_state:
-                print(row)
-            print()
+#         print("\nProcess log of the best result:")
+#         for step, (matrix_state, count, log_message) in enumerate(best_process_log):
+#             print(f"Step {step}: {log_message}")
+#             for row in matrix_state:
+#                 print(row)
+#             print()
 
-    except ValueError as e:
-        print(e)
+#     except ValueError as e:
+#         print(e)
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/process', methods=['POST'])
+def process():
+    data = request.json
+    A = data['A']
+    W = int(data['W'])
+    H = int(data['H'])
+    
+    best_matrix, best_move_count, best_process_log = run_experiments(20, A, W, H)  # N번 실험
+
+    return jsonify({
+        'best_matrix': best_matrix,
+        'best_move_count': best_move_count,
+        'best_process_log': best_process_log
+    })
+
+if __name__ == '__main__':
+    app.run(debug=True)

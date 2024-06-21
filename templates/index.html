@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sorting Container</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Algorithm for Optimal Reordering of Containers in a Bay</h1>
+    <form id="matrix-form">
+        <div>
+            <label>Width (W):</label>
+            <input type="number" id="width" value="">
+        </div>
+        <div>
+            <label>Height (H):</label>
+            <input type="number" id="height" value="">
+        </div>
+        <button type="button" id="generate-matrix">Generate Matrix</button>
+        <div id="matrix-input-container"></div>
+        <button type="submit">Process</button>
+    </form>
+
+    <h2>Result</h2>
+    <div id="result"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#generate-matrix').on('click', function() {
+                var width = $('#width').val();
+                var height = $('#height').val();
+                var container = $('#matrix-input-container');
+                container.empty(); // 기존 입력란 제거
+
+                var tableHtml = '<table>';
+                for (var i = 0; i < height; i++) {
+                    tableHtml += '<tr>';
+                    for (var j = 0; j < width; j++) {
+                        tableHtml += `<td><input type="number" class="matrix-cell" data-row="${i}" data-col="${j}" value="0"></td>`;
+                    }
+                    tableHtml += '</tr>';
+                }
+                tableHtml += '</table>';
+                container.html(tableHtml);
+            });
+
+            $('#matrix-form').on('submit', function(e) {
+                e.preventDefault();
+
+                var width = $('#width').val();
+                var height = $('#height').val();
+                var matrix = [];
+
+                for (var i = 0; i < height; i++) {
+                    var row = [];
+                    for (var j = 0; j < width; j++) {
+                        var value = $(`.matrix-cell[data-row="${i}"][data-col="${j}"]`).val();
+                        row.push(Number(value));
+                    }
+                    matrix.push(row);
+                }
+
+                $.ajax({
+                    url: '/process',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        A: matrix,
+                        W: width,
+                        H: height
+                    }),
+                    success: function(response) {
+                        var tableHtml = '<h3>Best Matrix:</h3><table>';
+                        response.best_matrix.forEach(function(row) {
+                            tableHtml += '<tr>';
+                            row.forEach(function(cell) {
+                                var key = Object.keys(cell)[0];
+                                var value = cell[key];
+                                tableHtml += '<td>' + key + ': ' + value + '</td>';
+                            });
+                            tableHtml += '</tr>';
+                        });
+                        tableHtml += '</table>';
+
+                        tableHtml += '<h3>Minimum Move Count: ' + response.best_move_count + '</h3>';
+                        tableHtml += '<h3>Process Log:</h3>';
+
+                        response.best_process_log.forEach(function(log, index) {
+                            tableHtml += '<h4>Step ' + index + ': ' + log[2] + '</h4>';
+                            tableHtml += '<table>';
+                            log[0].forEach(function(row) {
+                                tableHtml += '<tr>';
+                                row.forEach(function(cell) {
+                                    var key = Object.keys(cell)[0];
+                                    var value = cell[key];
+                                    tableHtml += '<td>' + key + ': ' + value + '</td>';
+                                });
+                                tableHtml += '</tr>';
+                            });
+                            tableHtml += '</table>';
+                        });
+
+                        $('#result').html(tableHtml);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
