@@ -128,7 +128,7 @@ def process():
     W = int(data['W'])
     H = int(data['H'])
     
-    best_matrix, best_move_count, best_process_log = run_experiments(20, A, W, H)
+    best_matrix, best_move_count, best_process_log = run_experiments(100, A, W, H)
 
     # 보기 좋게 변환된 결과 생성
     pretty_best_matrix = prettify_matrix(best_matrix)
