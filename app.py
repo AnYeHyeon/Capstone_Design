@@ -1,6 +1,7 @@
 import random
 import copy
 from flask import Flask, request, render_template, jsonify
+import time
 
 app = Flask(__name__)
 
@@ -122,15 +123,24 @@ def index():
     return render_template('index.html')
 
 @app.route('/process', methods=['POST'])
+
+@app.route('/process', methods=['POST'])
+
+@app.route('/process', methods=['POST'])
 def process():
     data = request.json
     A = data['A']
     W = int(data['W'])
     H = int(data['H'])
-    
-    best_matrix, best_move_count, best_process_log = run_experiments(100, A, W, H)
 
-    # 보기 좋게 변환된 결과 생성
+    start_time = time.process_time()  # Start CPU time measurement
+    best_matrix, best_move_count, best_process_log = run_experiments(100, A, W, H)
+    end_time = time.process_time()  # End CPU time measurement
+    elapsed_cpu_time = end_time - start_time  # Calculate CPU time elapsed
+
+    # Format CPU time
+    formatted_cpu_time = "{:.2f} seconds".format(elapsed_cpu_time)
+
     pretty_best_matrix = prettify_matrix(best_matrix)
     pretty_best_process_log = [
         (prettify_matrix(matrix_state), count, log_message)
@@ -140,11 +150,11 @@ def process():
     response = {
         'best_matrix': pretty_best_matrix,
         'best_move_count': best_move_count,
-        'best_process_log': pretty_best_process_log
+        'best_process_log': pretty_best_process_log,
+        'time_taken': formatted_cpu_time
     }
 
     return jsonify(response)
-
 
 
 if __name__ == '__main__':

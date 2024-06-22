@@ -42,7 +42,7 @@
                 var width = $('#width').val();
                 var height = $('#height').val();
                 var container = $('#matrix-input-container');
-                container.empty(); // 기존 입력란 제거
+                container.empty();
 
                 var tableHtml = '<table>';
                 for (var i = 0; i < height; i++) {
@@ -95,8 +95,9 @@
                         tableHtml += '</table>';
 
                         tableHtml += '<h3>Minimum Move Count: ' + response.best_move_count + '</h3>';
-                        tableHtml += '<h3>Process Log:</h3>';
+                        tableHtml += '<h3>CPU Time Taken: ' + response.time_taken + '</h3>'; // Display CPU time taken
 
+                        tableHtml += '<h3>Process Log:</h3>';
                         response.best_process_log.forEach(function(log, index) {
                             tableHtml += '<h4>Step ' + index + ': ' + log[2] + '</h4>';
                             tableHtml += '<table>';
