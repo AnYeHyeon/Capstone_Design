@@ -127,16 +127,18 @@ def index():
 @app.route('/process', methods=['POST'])
 
 @app.route('/process', methods=['POST'])
+
+@app.route('/process', methods=['POST'])
 def process():
     data = request.json
     A = data['A']
     W = int(data['W'])
     H = int(data['H'])
 
-    start_time = time.process_time()  # Start CPU time measurement
+    start_cpu_time = time.process_time()  # Start measuring CPU time
     best_matrix, best_move_count, best_process_log = run_experiments(100, A, W, H)
-    end_time = time.process_time()  # End CPU time measurement
-    elapsed_cpu_time = end_time - start_time  # Calculate CPU time elapsed
+    end_cpu_time = time.process_time()  # End measuring CPU time
+    elapsed_cpu_time = end_cpu_time - start_cpu_time  # Calculate elapsed CPU time
 
     # Format CPU time
     formatted_cpu_time = "{:.2f} seconds".format(elapsed_cpu_time)
@@ -151,10 +153,11 @@ def process():
         'best_matrix': pretty_best_matrix,
         'best_move_count': best_move_count,
         'best_process_log': pretty_best_process_log,
-        'time_taken': formatted_cpu_time
+        'cpu_time_taken': formatted_cpu_time  # Return CPU time
     }
 
     return jsonify(response)
+
 
 
 if __name__ == '__main__':
